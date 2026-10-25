@@ -1,0 +1,28 @@
+# Regulatory parameters used by the engine. NONE of these values has been verified
+# against the NAIC Valuation Manual. Load the manual in the app and let the agent
+# confirm each one with a citation (confirm_regulatory_parameter), or edit by hand.
+sr_cte_level:
+  value: 0.70
+  description: Conditional tail expectation level for the Stochastic Reserve.
+  verified: false
+  source: null
+sert_threshold:
+  value: 0.045
+  description: Stochastic Exclusion Ratio Test pass threshold (placeholder, not taken from VM-22).
+  verified: false
+  source: null
+n_stochastic_scenarios:
+  value: 1000
+  description: Number of economic scenarios for the Stochastic Reserve.
+  verified: false
+  source: null
+reserve_floor_basis:
+  value: cash_surrender_value
+  description: Basis of the reserve floor applied to the modeled reserve (cash_surrender_value or none).
+  verified: false
+  source: null
+reserve_rule:
+  value: "reported = max(floor, SR if SERT fails else DR)"
+  description: How the Deterministic Reserve, Stochastic Reserve and floor combine (simplified).
+  verified: false
+  source: null

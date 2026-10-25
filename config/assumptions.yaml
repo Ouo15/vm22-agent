@@ -1,0 +1,44 @@
+# Company assumption set (anticipated experience + margins) for the synthetic block.
+# Educational values only - not calibrated to any company's experience.
+valuation_year: 2026
+projection_years: 50
+
+economic:                    # stand-in for the NAIC Generator of Economic Scenarios (GOES)
+  seed: 2026
+  initial_short_rate: 0.040
+  long_term_rate: 0.040
+  mean_reversion: 0.15
+  volatility: 0.010
+  rate_floor: -0.010
+  term_premium_10y: 0.006
+  portfolio_book_yield: 0.050
+  portfolio_spread: 0.015    # new-money spread over the 10-year yield
+  default_cost: 0.0025
+  reinvestment_turnover: 0.12
+
+mortality:                   # synthetic Gompertz-Makeham stand-in for a prescribed table
+  makeham_a: 0.0002
+  gompertz_b: 0.00002
+  gompertz_c: 1.10
+  female_factor: 0.80
+  improvement_rate: 0.010
+  improvement_grade_from_age: 85
+  improvement_zero_age: 100
+  margin_payout: 0.05        # reduces q for payout annuities (prudent for longevity risk)
+  margin_deferred: 0.00
+
+policyholder_behavior:
+  base_lapse_in_sc: 0.03
+  shock_lapse: 0.25
+  base_lapse_after_sc: 0.10
+  dynamic_lapse_slope: 50.0  # factor = 1 + slope * (competitor rate - credited rate - threshold)
+  dynamic_lapse_threshold: 0.005
+  dynamic_lapse_min: 0.5
+  dynamic_lapse_max: 3.0
+  lapse_margin: 0.10         # multiplicative margin on lapse rates
+
+company:
+  crediting_spread: 0.020    # credited = max(guaranteed, earned rate - spread)
+  maintenance_expense: 75.0
+  payout_expense: 40.0
+  expense_inflation: 0.025
