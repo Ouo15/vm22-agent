@@ -1,5 +1,7 @@
 # VM-22 Valuation Agent
 
+[Live demo](https://vm22-agent.streamlit.app/) · [Blog post](https://ouo15.github.io/posts/vm22-valuation-agent/) · [MIT License](LICENSE)
+
 An agentic AI assistant for **VM-22 principle-based reserving of non-variable annuities**.
 Claude orchestrates a tested actuarial engine. It runs the exclusion test and the
 deterministic and stochastic reserves, checks data and assumptions, answers regulatory
@@ -61,7 +63,7 @@ parameters are flagged in every result and report.
 
 ## Live demo
 
-A hosted demo runs on Streamlit Community Cloud. It runs in **public mode**: you bring your
+**[vm22-agent.streamlit.app](https://vm22-agent.streamlit.app/)**, hosted on Streamlit Community Cloud. It runs in **public mode**: you bring your
 own Anthropic API key (held in your session's memory only, never stored or logged), and
 nothing you upload or change is shared with other visitors. The Results tab works without a key.
 
