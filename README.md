@@ -59,13 +59,26 @@ The CTE level, SERT threshold, number of scenarios, floor basis and reserve rule
 It searches the text, and it can mark a value verified only with a citation. Unverified
 parameters are flagged in every result and report.
 
-## Setup
+## Live demo
+
+A hosted demo runs on Streamlit Community Cloud. It runs in **public mode**: you bring your
+own Anthropic API key (held in your session's memory only, never stored or logged), and
+nothing you upload or change is shared with other visitors. The Results tab works without a key.
+
+## Run it locally
 
 ```bash
 cd vm22-agent
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-export ANTHROPIC_API_KEY=...        # or paste the key in the app's sidebar
 .venv/bin/streamlit run app.py      # opens http://localhost:8501
+```
+
+Paste your API key in the sidebar. To use a key from the environment and save runs, reports
+and uploaded PDFs to disk instead, start the app in local mode:
+
+```bash
+export ANTHROPIC_API_KEY=...
+VM22_LOCAL_MODE=1 .venv/bin/streamlit run app.py
 ```
 
 1. Download the current **NAIC Valuation Manual** PDF from naic.org and upload it in the
@@ -78,6 +91,15 @@ export ANTHROPIC_API_KEY=...        # or paste the key in the app's sidebar
 4. The **Reports** tab shows the drafts with Markdown and Word downloads.
 
 Run the tests with `.venv/bin/python -m pytest`.
+
+### Public mode vs local mode
+
+| | Public mode (default) | Local mode (`VM22_LOCAL_MODE=1`) |
+|---|---|---|
+| API key | Visitor's own key only; server keys are ignored | Visitor's key, or `ANTHROPIC_API_KEY` |
+| Uploaded PDFs | Private temporary folder per session | `data/regulations/` |
+| Verified parameters | This session only | Saved to `config/regulatory_parameters.yaml` |
+| Runs and reports | In memory | Also saved to `outputs/` |
 
 ## Agent implementation notes
 
@@ -95,3 +117,7 @@ Run the tests with `.venv/bin/python -m pytest`.
 - Add reserving categories and products (fixed indexed annuities, longevity reinsurance).
 - Asset modeling with reinvestment guardrails, and the NAER-based discounting.
 - An evaluation set of regulatory questions with known answers to measure citation accuracy.
+
+## License
+
+[MIT](LICENSE). You're free to use, modify and share the code, with attribution.

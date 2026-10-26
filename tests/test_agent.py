@@ -9,11 +9,8 @@ from vm22.workspace import Workspace
 
 
 @pytest.fixture
-def ws(tmp_path):
-    w = Workspace()
-    w.out_dir = tmp_path          # keep test outputs out of the project
-    w.save_reg_params = lambda: None
-    return w
+def ws():
+    return Workspace(persist=False)  # nothing is written to the project folder
 
 
 def test_validate_rejects_bad_input():

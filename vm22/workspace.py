@@ -2,6 +2,7 @@
 
 import copy
 import json
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,8 +15,13 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class Workspace:
-    def __init__(self, root=ROOT):
+    """persist=False keeps everything in this session: uploaded PDFs go to a private
+    temporary folder, and parameter changes, runs and reports are never written to the
+    shared project folder. Use it whenever several people share one server."""
+
+    def __init__(self, root=ROOT, persist=True):
         self.root = Path(root)
+        self.persist = persist
         self.assumptions = yaml.safe_load((self.root / "config/assumptions.yaml").read_text())
         self.reg_params = yaml.safe_load((self.root / "config/regulatory_parameters.yaml").read_text())
         self.portfolio = {"deferred": data.synthetic_deferred(), "payout": data.synthetic_payout()}
@@ -24,7 +30,7 @@ class Workspace:
         self.sert_result = None
         self.sensitivities = []
         self.reports = {}       # kind -> {"title", "markdown", "saved_at"}
-        self.reg_dir = self.root / "data/regulations"
+        self.reg_dir = self.root / "data/regulations" if persist else Path(tempfile.mkdtemp(prefix="vm22-regs-"))
         self.out_dir = self.root / "outputs"
         self.reg_index = RegulatoryIndex([])
         self.reload_regulations()
@@ -36,6 +42,8 @@ class Workspace:
 
     # --- parameters --------------------------------------------------------
     def save_reg_params(self):
+        if not self.persist:
+            return
         (self.root / "config/regulatory_parameters.yaml").write_text(yaml.safe_dump(self.reg_params, sort_keys=False))
 
     def confirm_reg_param(self, name, value, citation):
@@ -87,5 +95,7 @@ class Workspace:
         return next((r for r in self.runs if r["run_id"] == run_id), None)
 
     def _write(self, name, text):
+        if not self.persist:
+            return
         self.out_dir.mkdir(parents=True, exist_ok=True)
         (self.out_dir / name).write_text(text)

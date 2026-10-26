@@ -1,9 +1,15 @@
 """Streamlit front end for the VM-22 valuation agent.
 
 Run with:  streamlit run app.py
+
+By default the app runs in public mode, safe for hosting: it never uses a server-side
+API key (visitors bring their own, kept in their session's memory only) and writes
+nothing to the shared disk. Set VM22_LOCAL_MODE=1 on your own machine to use
+ANTHROPIC_API_KEY from the environment and save runs, reports and uploaded PDFs.
 """
 
 import os
+from pathlib import Path
 
 import anthropic
 import numpy as np
@@ -18,10 +24,11 @@ from vm22.reserves import SENSITIVITY_UNITS
 from vm22.workspace import Workspace
 
 BLUE, GREY, RED = "#06436e", "#9ca3af", "#b2182b"
+LOCAL_MODE = os.environ.get("VM22_LOCAL_MODE") == "1"
 st.set_page_config(page_title="VM-22 Valuation Agent", page_icon="📊", layout="wide")
 
 if "ws" not in st.session_state:
-    st.session_state.ws = Workspace()
+    st.session_state.ws = Workspace(persist=LOCAL_MODE)
     st.session_state.chat = []      # display history: {"role", "text", "steps"}
     st.session_state.agent = None
 ws = st.session_state.ws
@@ -31,12 +38,20 @@ def money(x):
     return f"${x / 1e6:,.1f}M"
 
 
+def env_key_available():
+    return LOCAL_MODE and bool(os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN"))
+
+
 def get_agent():
     if st.session_state.agent is None:
-        key = st.session_state.get("api_key") or None
-        if not (key or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
-            return None
-        st.session_state.agent = VM22Agent(ws, anthropic.Anthropic(api_key=key) if key else anthropic.Anthropic())
+        key = (st.session_state.get("api_key") or "").strip()
+        if key:
+            client = anthropic.Anthropic(api_key=key)
+        elif env_key_available():
+            client = anthropic.Anthropic()
+        else:
+            return None  # public mode: never fall back to a server-side key
+        st.session_state.agent = VM22Agent(ws, client)
     return st.session_state.agent
 
 
@@ -45,12 +60,15 @@ with st.sidebar:
     st.header("VM-22 Valuation Agent")
     st.caption(DISCLAIMER)
 
-    with st.expander("Claude API", expanded=not os.environ.get("ANTHROPIC_API_KEY")):
-        if os.environ.get("ANTHROPIC_API_KEY"):
-            st.success(f"Using ANTHROPIC_API_KEY · model {MODEL}")
+    with st.expander("Claude API", expanded=not env_key_available()):
+        if env_key_available():
+            st.success(f"Local mode: using ANTHROPIC_API_KEY · model {MODEL}")
         else:
-            st.text_input("API key (kept in this session only)", type="password", key="api_key",
+            st.text_input("Your Anthropic API key", type="password", key="api_key",
                           on_change=lambda: st.session_state.update(agent=None))
+            st.caption("Bring your own key from console.anthropic.com; usage is billed to it. "
+                       "It is used only for your session, kept in memory, and never saved or logged. "
+                       "A key with a spending limit is a good idea. The Results tab works without a key.")
 
     with st.expander("In-force data", expanded=False):
         st.write(f"Source: **{ws.portfolio_source}**")
@@ -71,7 +89,7 @@ with st.sidebar:
                    "The agent cites it when answering regulatory questions.")
         pdf = st.file_uploader("Regulatory PDF", type="pdf")
         if pdf and st.button("Index PDF"):
-            (ws.reg_dir / pdf.name).write_bytes(pdf.getvalue())
+            (ws.reg_dir / Path(pdf.name).name).write_bytes(pdf.getvalue())  # basename only: no path traversal
             with st.spinner("Indexing..."):
                 ws.reload_regulations()
             st.rerun()

@@ -45,14 +45,14 @@ TOOLS = [
     _tool("run_valuation",
           "Run the full valuation: SERT, Deterministic Reserve, Stochastic Reserve (CTE over stochastic "
           "scenarios), floor and reported reserve by category. Saves a run record.",
-          {"n_scenarios": {"type": "integer", "minimum": 50, "maximum": 5000,
+          {"n_scenarios": {"type": "integer", "minimum": 50, "maximum": 2000,
                            "description": "Stochastic scenarios; defaults to the regulatory parameter."}}),
     _tool("run_sensitivity",
           "Re-run the valuation with one assumption shocked and report the change in reported and modeled "
           "reserves by category. Units: " + "; ".join(f"{k}: {v}" for k, v in SENSITIVITY_UNITS.items()),
           {"assumption": {"type": "string", "enum": list(SENSITIVITY_UNITS)},
            "shock": {"type": "number", "minimum": -0.5, "maximum": 0.5},
-           "n_scenarios": {"type": "integer", "minimum": 50, "maximum": 5000}},
+           "n_scenarios": {"type": "integer", "minimum": 50, "maximum": 2000}},
           ["assumption", "shock"]),
     _tool("get_run",
           "Get the summary of a saved valuation run (the latest if run_id is omitted), including the "
